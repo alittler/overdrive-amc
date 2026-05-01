@@ -52,30 +52,42 @@ DISK_INFO=()
 
 log_info "Scanning for physical storage..."
 
-# Get all block devices and mount points
-while IFS= read -r device mountpoint fstype || true; do
-    # Skip loop devices, ram, and tmpfs
-    if [[ "$device" =~ ^/dev/(loop|ram|zram|sr) ]] || [[ "$fstype" =~ ^(tmpfs|devtmpfs|sysfs|proc)$ ]]; then
-        continue
-    fi
-    
-    # Only include actual disks/partitions
-    if [[ "$device" =~ ^/dev/(sd|nvme|vd) ]] && [ -n "$mountpoint" ]; then
-        MOUNTS+=("$mountpoint")
-        DISK_INFO+=("$device:$mountpoint")
-    fi
-done < <(lsblk -npo NAME,MOUNTPOINT,FSTYPE 2>/dev/null || echo "")
+# Use simpler approach - avoid process substitution when piped
+if command -v lsblk &> /dev/null; then
+    lsblk -npo NAME,MOUNTPOINT,FSTYPE 2>/dev/null | while read -r device mountpoint fstype; do
+        # Skip loop devices, ram, and tmpfs
+        if [[ "$device" =~ ^/dev/(loop|ram|zram|sr) ]] || [[ "$fstype" =~ ^(tmpfs|devtmpfs|sysfs|proc)$ ]]; then
+            continue
+        fi
+        
+        # Only include actual disks/partitions
+        if [[ "$device" =~ ^/dev/(sd|nvme|vd) ]] && [ -n "$mountpoint" ]; then
+            MOUNTS+=("$mountpoint")
+            DISK_INFO+=("$device:$mountpoint")
+        fi
+    done
+else
+    log_warn "lsblk not found, using df instead..."
+    df -x tmpfs -x devtmpfs -x sysfs -x proc 2>/dev/null | tail -n +2 | while read -r line; do
+        device=$(echo "$line" | awk '{print $1}')
+        mount=$(echo "$line" | awk '{print $NF}')
+        if [[ "$device" =~ ^/dev/(sd|nvme|vd) ]]; then
+            MOUNTS+=("$mount")
+            DISK_INFO+=("$device:$mount")
+        fi
+    done
+fi
 
 if [ "${#MOUNTS[@]}" -eq 0 ]; then
     log_warn "No mounted physical disks detected"
     log_info "Available mount points:"
-    lsblk -o NAME,SIZE,MOUNTPOINT | head -20 || true
+    df -h 2>/dev/null | head -10 || true
 else
     log_info "Found ${#MOUNTS[@]} mounted disk(s):"
     for info in "${DISK_INFO[@]}"; do
         device="${info%%:*}"
         mount="${info##*:}"
-        size=$(lsblk -dnpo SIZE "$device" 2>/dev/null | head -1 || echo "Unknown")
+        size=$(df -h "$mount" 2>/dev/null | tail -1 | awk '{print $2}' || echo "Unknown")
         log_info "  └─ $device ($size) mounted at $mount"
     done
 fi
