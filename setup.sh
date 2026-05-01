@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -eo pipefail
 
 # Colors
 GREEN='\033[0;32m'
@@ -53,7 +53,7 @@ DISK_INFO=()
 log_info "Scanning for physical storage..."
 
 # Get all block devices and mount points
-while IFS= read -r device mountpoint fstype; do
+while IFS= read -r device mountpoint fstype || true; do
     # Skip loop devices, ram, and tmpfs
     if [[ "$device" =~ ^/dev/(loop|ram|zram|sr) ]] || [[ "$fstype" =~ ^(tmpfs|devtmpfs|sysfs|proc)$ ]]; then
         continue
@@ -64,12 +64,12 @@ while IFS= read -r device mountpoint fstype; do
         MOUNTS+=("$mountpoint")
         DISK_INFO+=("$device:$mountpoint")
     fi
-done < <(lsblk -npo NAME,MOUNTPOINT,FSTYPE 2>/dev/null || true)
+done < <(lsblk -npo NAME,MOUNTPOINT,FSTYPE 2>/dev/null || echo "")
 
-if [ ${#MOUNTS[@]} -eq 0 ]; then
+if [ "${#MOUNTS[@]}" -eq 0 ]; then
     log_warn "No mounted physical disks detected"
     log_info "Available mount points:"
-    lsblk -o NAME,SIZE,MOUNTPOINT | head -20
+    lsblk -o NAME,SIZE,MOUNTPOINT | head -20 || true
 else
     log_info "Found ${#MOUNTS[@]} mounted disk(s):"
     for info in "${DISK_INFO[@]}"; do
@@ -110,7 +110,7 @@ echo "Where would you like to store data and configuration?"
 echo "1) /opt/overdrive-data (System-wide, recommended)"
 echo "2) /etc/overdrive"
 echo "3) /var/lib/overdrive"
-if [ ${#MOUNTS[@]} -gt 0 ]; then
+if [ "${#MOUNTS[@]}" -gt 0 ]; then
     echo "4) Select from detected mount points"
 fi
 echo "5) Custom location"
@@ -121,18 +121,18 @@ case $data_choice in
     2) SHARED_LOCATION="/etc/overdrive" ;;
     3) SHARED_LOCATION="/var/lib/overdrive" ;;
     4)
-        if [ ${#MOUNTS[@]} -eq 0 ]; then
+        if [ "${#MOUNTS[@]}" -eq 0 ]; then
             log_warn "No mount points detected, using default"
             SHARED_LOCATION="/opt/overdrive-data"
         else
             echo "Select a mount point:"
             for i in "${!MOUNTS[@]}"; do
                 mount="${MOUNTS[$i]}"
-                usage=$(df -h "$mount" 2>/dev/null | tail -1 | awk '{printf "%s / %s", $3, $2}')
+                usage=$(df -h "$mount" 2>/dev/null | tail -1 | awk '{printf "%s / %s", $3, $2}' || echo "Unknown")
                 echo "$((i+1))) $mount ($usage)"
             done
             read -p "Enter choice: " mount_choice
-            if [ "$mount_choice" -ge 1 ] && [ "$mount_choice" -le ${#MOUNTS[@]} ]; then
+            if [ "$mount_choice" -ge 1 ] && [ "$mount_choice" -le "${#MOUNTS[@]}" ]; then
                 SHARED_LOCATION="${MOUNTS[$((mount_choice-1))]}/overdrive-data"
             else
                 log_warn "Invalid choice, using default"
