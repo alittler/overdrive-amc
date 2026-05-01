@@ -47,8 +47,8 @@ log_info "Installation successful!"
 # Step 2: Detect physical disks/partitions
 log_section "Step 2: Detecting Physical Disks & Mount Points"
 
-declare -a MOUNTS
-declare -a DISK_INFO
+MOUNTS=()
+DISK_INFO=()
 
 log_info "Scanning for physical storage..."
 
@@ -80,11 +80,79 @@ else
     done
 fi
 
-# Step 3: Copy code to shared location
-log_section "Step 3: Setting Up Shared Location"
+# Step 3: Interactive installation directory selection
+log_section "Step 3: Select Installation Directory"
 
-INSTALL_DIR="/opt/overdrive-amc"
-SHARED_LOCATION="/opt/overdrive-data"
+echo "Where would you like to install Overdrive-AMC?"
+echo "1) /opt/overdrive-amc (System-wide, recommended)"
+echo "2) /usr/local/overdrive-amc"
+echo "3) Custom location"
+read -p "Enter choice [1-3]: " install_choice
+
+case $install_choice in
+    1) INSTALL_DIR="/opt/overdrive-amc" ;;
+    2) INSTALL_DIR="/usr/local/overdrive-amc" ;;
+    3)
+        read -p "Enter custom installation path: " INSTALL_DIR
+        ;;
+    *)
+        log_error "Invalid choice. Using default: /opt/overdrive-amc"
+        INSTALL_DIR="/opt/overdrive-amc"
+        ;;
+esac
+
+log_info "Installation directory: $INSTALL_DIR"
+
+# Step 4: Interactive data location selection
+log_section "Step 4: Select Data/Config Location"
+
+echo "Where would you like to store data and configuration?"
+echo "1) /opt/overdrive-data (System-wide, recommended)"
+echo "2) /etc/overdrive"
+echo "3) /var/lib/overdrive"
+if [ ${#MOUNTS[@]} -gt 0 ]; then
+    echo "4) Select from detected mount points"
+fi
+echo "5) Custom location"
+read -p "Enter choice [1-5]: " data_choice
+
+case $data_choice in
+    1) SHARED_LOCATION="/opt/overdrive-data" ;;
+    2) SHARED_LOCATION="/etc/overdrive" ;;
+    3) SHARED_LOCATION="/var/lib/overdrive" ;;
+    4)
+        if [ ${#MOUNTS[@]} -eq 0 ]; then
+            log_warn "No mount points detected, using default"
+            SHARED_LOCATION="/opt/overdrive-data"
+        else
+            echo "Select a mount point:"
+            for i in "${!MOUNTS[@]}"; do
+                mount="${MOUNTS[$i]}"
+                usage=$(df -h "$mount" 2>/dev/null | tail -1 | awk '{printf "%s / %s", $3, $2}')
+                echo "$((i+1))) $mount ($usage)"
+            done
+            read -p "Enter choice: " mount_choice
+            if [ "$mount_choice" -ge 1 ] && [ "$mount_choice" -le ${#MOUNTS[@]} ]; then
+                SHARED_LOCATION="${MOUNTS[$((mount_choice-1))]}/overdrive-data"
+            else
+                log_warn "Invalid choice, using default"
+                SHARED_LOCATION="/opt/overdrive-data"
+            fi
+        fi
+        ;;
+    5)
+        read -p "Enter custom data path: " SHARED_LOCATION
+        ;;
+    *)
+        log_error "Invalid choice. Using default: /opt/overdrive-data"
+        SHARED_LOCATION="/opt/overdrive-data"
+        ;;
+esac
+
+log_info "Data location: $SHARED_LOCATION"
+
+# Step 5: Copy code to shared location
+log_section "Step 5: Setting Up Installation"
 
 log_info "Creating shared data directory: $SHARED_LOCATION"
 mkdir -p "$SHARED_LOCATION" || {
@@ -126,8 +194,8 @@ else
     exit 1
 fi
 
-# Step 4: Create configuration file
-log_section "Step 4: Creating Configuration"
+# Step 6: Create configuration file
+log_section "Step 6: Creating Configuration"
 
 CONFIG_FILE="$SHARED_LOCATION/config.sh"
 
@@ -161,7 +229,7 @@ done
 chmod +x "$CONFIG_FILE"
 log_info "Configuration saved to $CONFIG_FILE"
 
-# Step 5: Display summary
+# Step 7: Display summary
 log_section "Setup Complete!"
 
 cat << EOF
