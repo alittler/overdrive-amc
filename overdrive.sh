@@ -1,5 +1,46 @@
 #!/bin/bash
 
+# Fast self-installer: curl|bash support
+if [[ "$1" == "--install" ]]; then
+    DEP_LOG="/home/$(whoami)/.media_bot_deps"
+    REQUIRED_PKGS=("swaks" "curl" "ca-certificates" "wget")
+
+    check_dependencies() {
+        MISSING_PKGS=()
+        for pkg in "${REQUIRED_PKGS[@]}"; do
+            if ! command -v "$pkg" &> /dev/null; then
+                MISSING_PKGS+=("$pkg")
+            fi
+        done
+
+        if [ ${#MISSING_PKGS[@]} -gt 0 ]; then
+            echo -e "\033[1;33m[!] Installing missing tools: ${MISSING_PKGS[*]}\033[0m"
+            sudo apt update && sudo apt install -y "${MISSING_PKGS[@]}"
+        fi
+        
+        if [[ ! -f "$DEP_LOG" ]]; then
+            touch "$DEP_LOG"
+            echo "Verified: $(date)" > "$DEP_LOG"
+        fi
+    }
+
+    [[ ! -f "$DEP_LOG" ]] && check_dependencies
+
+    echo
+    read -rp "Enter the full path where you want to install overdrive.sh (e.g. /usr/local/bin/overdrive.sh): " TARGET
+
+    if [[ -z "$TARGET" ]]; then
+        echo "Install path required."
+        exit 1
+    fi
+
+    echo "Installing overdrive.sh to $TARGET ..."
+    curl -fsSL "https://raw.githubusercontent.com/alittler/overdrive-amc/main/overdrive.sh" -o "$TARGET" &&
+    chmod +x "$TARGET" &&
+    echo "overdrive.sh successfully installed to $TARGET"
+    exit 0
+fi
+
 # --- 1. DEPENDENCY & DIRECTORY INITIALIZATION ---
 DEP_LOG="/home/$(whoami)/.media_bot_deps"
 REQUIRED_PKGS=("swaks" "curl" "ca-certificates" "wget")
