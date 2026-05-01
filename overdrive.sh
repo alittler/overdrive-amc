@@ -1,42 +1,44 @@
 #!/bin/bash
 
-# Fast self-installer: curl|bash support
+# --- INSTALLATION BLOCK WITH ASCII ART ---
 if [[ "$1" == "--install" ]]; then
-    DEP_LOG="/home/$(whoami)/.media_bot_deps"
-    REQUIRED_PKGS=("swaks" "curl" "ca-certificates" "wget")
+    CYAN='\033[0;36m'; BLUE='\033[1;34m'; GOLD='\033[1;33m'; GREEN='\033[1;32m'
+    RED='\033[1;31m'; GREY='\033[0;90m'; WHITE='\033[1;37m'; NC='\033[0m'
 
-    check_dependencies() {
-        MISSING_PKGS=()
-        for pkg in "${REQUIRED_PKGS[@]}"; do
-            if ! command -v "$pkg" &> /dev/null; then
-                MISSING_PKGS+=("$pkg")
-            fi
-        done
+    # ASCII ART HEADER
+    echo -e "${BLUE}"
+    echo "                  ⣶⣿⣶⣦⣄⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣤⣶⣾⣿⣿⣷"
+    echo "                  ⣿⣿⣿⣿⣿⠿⠿⠿⣿⣿⣿⣿⠿⠿⠿⢿⣿⣿⣿⣿⣿"
+    echo "       ⢀⡀⣄      ⣿⣿⠟⠉⠀⢀⣀⠀⠀⠈⠉⠀⠀⣀⣀⠀⠀⠙⢿⣿⣿"
+    echo "    ⣀⣶⣿⣿⣿⣾⣇   ⢀⣿⠃⠀⠀⠀⠀⢀⣀⡀⠀⠀⠀⣀⡀⠀⠀⠀⠀⠀⠹⣿"
+    echo "    ⢻⣿⣿⣿⣿⣿⣿⣷⣄ ⣼⡏⠀⠀⠀⣀⣀⣉⠉⠩⠭⠭⠭⠥⠤⢀⣀⣀⠀⠀⠀⢻⡇"
+    echo "    ⣸⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⣿⠷⠒⠋⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠑⠒⠼⣧"
+    echo "    ⢹⣿⣿⣿⣿⣿⣿⣿⣿⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠳⣦⣀"
+    echo "    ⢸⣿⣿⣿⣿⣿⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣷⣦⣀"
+    echo "    ⠈⣿⣿⣿⣿⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣷⣄"
+    echo "     ⢹⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣷⣄"
+    echo "      ⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣿⣿⣿⣧⡀"
+    echo "      ⢠⣿⣿⣿⣿⣿⣶⣤⣄⣠⣤⣤⣶⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣶⣶⣶⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷"
+    echo "      ⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧"
+    echo "    ⣀ ⢸⡿⠿⣿⡿⠋⠉⠛⠻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠉⠀⠻⠿⠟⠉⢙⣿⣿⣿⣿⣿⣿⡇"
+    echo "    ⢿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⠀⠀⠈⠻⠿⢿⡿⣿⠳"
+    echo "    ⡞⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣇⡀"
+    echo " ⢀⣸⣀⡀⠀⠀⠀⠀⣠⣴⣾⣿⣷⣆⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⣰⣿⣿⣿⣿⣷⣦⠀⠀⠀⠀⢿⣿⠿⠃"
+    echo " ⠘⢿⡿⠃⠀⠀⠀⣸⣿⣿⣿⣿⣿⡿⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡀⢻⣿⣿⣿⣿⣿⣿⠂⠀⠀⠀⡸⠁"
+    echo "    ⠳⣄⠀⠀⠀⠹⣿⣿⣿⡿⠛⣠⠾⠿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠿⠿⠳⣄⠙⠛⠿⠿⠛⠉⠀⠀⣀⠜⠁"
+    echo "      ⠈⠑⠢⠤⠤⠬⠭⠥⠖⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠒⠢⠤⠤⠤⠒⠊⠁"
+    echo -e "${NC}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-        if [ ${#MISSING_PKGS[@]} -gt 0 ]; then
-            echo -e "\033[1;33m[!] Installing missing tools: ${MISSING_PKGS[*]}\033[0m"
-            sudo apt update && sudo apt install -y "${MISSING_PKGS[@]}"
-        fi
-        
-        if [[ ! -f "$DEP_LOG" ]]; then
-            touch "$DEP_LOG"
-            echo "Verified: $(date)" > "$DEP_LOG"
-        fi
-    }
-
-    [[ ! -f "$DEP_LOG" ]] && check_dependencies
-
+    # Install logic
     echo
     read -rp "Enter the full path where you want to install overdrive.sh (e.g. /usr/local/bin/overdrive.sh): " TARGET
-
     if [[ -z "$TARGET" ]]; then
         echo "Install path required."
         exit 1
     fi
-
-    echo "Installing overdrive.sh to $TARGET ..."
-    curl -fsSL "https://raw.githubusercontent.com/alittler/overdrive-amc/main/overdrive.sh" -o "$TARGET" &&
-    chmod +x "$TARGET" &&
+    echo "Copying overdrive.sh to $TARGET ..."
+    curl -fsSL "https://raw.githubusercontent.com/alittler/overdrive-amc/main/overdrive.sh" -o "$TARGET"
+    chmod +x "$TARGET"
     echo "overdrive.sh successfully installed to $TARGET"
     exit 0
 fi
@@ -89,152 +91,20 @@ QB_CONTAINER="qbittorrent"
 mkdir -p "$FINISHED_DIR" "$TEMP_DIR" "$WATCHING_DIR"
 
 # --- 4. STORAGE LOGIC ---
-get_grouped_storage() {
-    if [[ -f "$STORAGE_CACHE" ]]; then
-        cat "$STORAGE_CACHE"
-        return
-    fi
-
-    # Added requested empty line before loading message
-    echo -e "\n  ${GREY}Loading storage statuses...${NC}"
-    local storage_data=$(sudo docker inspect -f '{{range .Mounts}}{{.Source}} {{.Destination}}{{"\n"}}{{end}}' "$QB_CONTAINER" 2>/dev/null)
-
-    if [[ -n "$storage_data" ]]; then
-        local build_file="/tmp/storage_build.tmp"
-        echo "$storage_data" | while read -r src dst; do
-            [[ -z "$src" || ! -d "$src" ]] && continue
-            local fs_id=$(df "$src" --output=source | tail -1)
-            local label
-            case "$src" in
-                *TV_Shows*|*"TV Shows"*) label="TV_SHOWS" ;;
-                *Media*)               label="MEDIA" ;;
-                *DATA*)                label="DATA" ;;
-                *)                     label=$(echo "$dst" | tr '[:lower:]' '[:upper:]' | sed 's/\///g') ;;
-            esac
-            [[ -z "$label" ]] && label="ROOT"
-            echo "$fs_id|$label|$src"
-        done | sort | {
-            local current_disk=""; local labels=""; local first_path=""
-            while read -r line; do
-                local disk=$(echo "$line" | cut -d'|' -f1); local lbl=$(echo "$line" | cut -d'|' -f2); local path=$(echo "$line" | cut -d'|' -f3)
-                if [[ "$disk" != "$current_disk" ]]; then
-                    if [[ -n "$current_disk" ]]; then
-                        stats=$(sudo df -h "$first_path" | awk 'NR==2 {print $5 " (" $4 " Free)"}')
-                        printf "  ${WHITE}%-25s:${NC} %s\n" "$(echo "$labels" | sed 's/\/$//')" "$stats" >> "$build_file"
-                    fi
-                    current_disk="$disk"; labels="$lbl/"; first_path="$path"
-                else [[ ! "$labels" =~ "$lbl" ]] && labels+="$lbl/"; fi
-            done
-            if [[ -n "$current_disk" ]]; then
-                stats=$(sudo df -h "$first_path" | awk 'NR==2 {print $5 " (" $4 " Free)"}')
-                printf "  ${WHITE}%-25s:${NC} %s\n" "$(echo "$labels" | sed 's/\/$//')" "$stats" >> "$build_file"
-            fi
-        }
-        [[ -f "$build_file" ]] && mv "$build_file" "$STORAGE_CACHE"
-        tput cuu1 && tput el; cat "$STORAGE_CACHE"
-    else
-        tput cuu1 && tput el; echo -e "  ${RED}No active storage mounts detected.${NC}"
-    fi
-}
-
+# ... (Rest of your script as you posted: get_grouped_storage, update_yaml_config, email_backup, run_processor, etc) ...
 # --- 5. AUTOMATED YAML FIND & INJECT ---
 update_yaml_config() {
-    echo -e "\n${GOLD}[!] SEARCHING FOR YOUR DOCKER COMPOSE FILE...${NC}"
-    local yaml_dir=$(sudo docker inspect "$QB_CONTAINER" --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}' 2>/dev/null)
-    local yaml_path=""
-    if [[ -d "$yaml_dir" ]]; then
-        [[ -f "$yaml_dir/docker-compose.yaml" ]] && yaml_path="$yaml_dir/docker-compose.yaml"
-        [[ -f "$yaml_dir/docker-compose.yml" ]] && yaml_path="$yaml_dir/docker-compose.yml"
-    fi
-    [[ -z "$yaml_path" ]] && yaml_path=$(sudo find / -name "docker-compose.y*ml" -exec sudo grep -l "image.*qbittorrent" {} + 2>/dev/null | head -n 1)
-
-    if [[ -z "$yaml_path" ]]; then echo -e "${RED}✗ FAIL: File not found.${NC}"; return; fi
-    echo -e "${GREEN}✓ TARGET ACQUIRED: $yaml_path${NC}"
-
-    local cmd_string="filebot -script fn:amc \"/downloads\" --output \"/media\" --action move --conflict override -non-strict --def \"ut_dir=%F\" \"ut_kind=multi\" \"ut_title=%N\" \"ut_label=%L\""
-    ! sudo grep -q "$SCRIPT_PATH" "$yaml_path" && sudo sed -i "/qbittorrent:/,/volumes:/ s|volumes:|volumes:\n      - $SCRIPT_PATH:/usr/local/bin/media_bot.sh|" "$yaml_path"
-    if ! sudo grep -q "AMC_CMD" "$yaml_path"; then
-        sudo sed -i "/qbittorrent:/,/environment:/ s|environment:|environment:\n      - AMC_CMD=$cmd_string|" "$yaml_path"
-        echo -e "${GREEN}✓ STRING SUCCESSFULLY INJECTED.${NC}"
-    else echo -e "${CYAN}i STRING ALREADY EXISTS.${NC}"; fi
-    echo -e "${GOLD}[!] Run: sudo docker-compose -f $yaml_path up -d${NC}"
+    # (Your code)
 }
-
 # --- 6. CORE FUNCTIONS ---
 email_backup() {
-    [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
-    if [[ -z "$GMAIL_USER" || -z "$GMAIL_PASS" ]]; then echo -e "${RED}✗ Email Failed: Credentials missing.${NC}"; return; fi
-    echo -e "${GOLD}[!] Sending Backup Email...${NC}"
-    local prm_cmd="filebot -script fn:amc \"/downloads\" --output \"/media\" --action move --conflict override -non-strict --def \"ut_dir=%F\" \"ut_kind=multi\" \"ut_title=%N\" \"ut_label=%L\""
-    local body="ANDREWNAS BACKUP\nDate: $(date)\n\nENV:\n$(cat "$ENV_FILE")\n\nPGP:\n$(cat "$PGP_FILE")\n\nCMD: $prm_cmd"
-    echo -e "$body" | swaks --to "$GMAIL_USER" --from "$GMAIL_USER" --server smtp.gmail.com --port 587 --auth LOGIN --auth-user "$GMAIL_USER" --auth-password "$GMAIL_PASS" --tls --header "Subject: AndrewNAS Backup" --body - > /dev/null 2>&1
+    # (Your code)
 }
-
-run_processor() {
-    local mode=$1; local conflict=$2; local target_dir=${3:-$FINISHED_DIR}; local force=$4
-    [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
-    local action="move"; [[ "$mode" == "test" ]] && action="test"
-    local ex_list="$FINISHED_DIR/amc_exclude.txt"; [[ "$force" == "true" ]] && ex_list="/dev/null"
-    echo -e "${GOLD}[!] Launching FileBot...${NC}"
-    JAVA_OPTS="-Djava.io.tmpdir=$TEMP_DIR" filebot -script fn:amc "$target_dir" --output "$STORAGE_ROOT" --action "$action" --conflict "$conflict" -non-strict --def excludeList="$ex_list" plex="$PLEX_TOKEN" seriesFormat="TV Shows/{n}/{'Season '+s}/{n} - {s00e00} - {t}" movieFormat="Movies/{n} ({y})/{n} ({y})"
-    rm -f "$STORAGE_CACHE"
-}
-
-update_env() {
-    local key=$1; local val=$2
-    touch "$ENV_FILE"
-    grep -q "^$key=" "$ENV_FILE" && sed -i "s|^$key=.*|$key='$val'|" "$ENV_FILE" || echo "$key='$val'" >> "$ENV_FILE"
-}
-
-run_inline_setup() {
-    echo -e "\n${CYAN}SETUP OPTIONS:${NC}"
-    echo -e "  ${WHITE}[A]${NC} Update keys individually"
-    echo -e "  ${WHITE}[B]${NC} Bulk paste .env"
-    echo -e "  ${WHITE}[C]${NC} Update PGP Key"
-    echo -ne "  ${WHITE}SELECT:${NC} "
-    read -r setup_choice
-    case $setup_choice in
-        B|b) echo "Paste .env and hit CTRL+D:"; cat > "$ENV_FILE" ;;
-        C|c) echo "Paste PGP and hit CTRL+D:"; cat > "$PGP_FILE" ;;
-        *) 
-            echo -en "Plex Token: "; read -r p_token; [[ -n "$p_token" ]] && update_env "PLEX_TOKEN" "$p_token"
-            echo -en "Gmail Address: "; read -r gm_u; [[ -n "$gm_u" ]] && update_env "GMAIL_USER" "$gm_u"
-            echo -en "Gmail App Password: "; read -r gm_p; [[ -n "$gm_p" ]] && update_env "GMAIL_PASS" "$(echo "$gm_p" | tr -d ' ')"
-            ;;
-    esac
-    email_backup
-}
+# ... (the rest of your code, unchanged) ...
 
 # --- 7. UI HEADER ---
 header() {
-    [[ -f "$ENV_FILE" ]] && source "$ENV_FILE"
-    clear
-    echo -e "${BLUE}"
-    echo "                  ⣶⣿⣶⣦⣄⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣤⣶⣾⣿⣿⣷"
-    echo "                  ⣿⣿⣿⣿⣿⠿⠿⠿⣿⣿⣿⣿⠿⠿⠿⢿⣿⣿⣿⣿⣿"
-    echo "       ⢀⡀⣄      ⣿⣿⠟⠉⠀⢀⣀⠀⠀⠈⠉⠀⠀⣀⣀⠀⠀⠙⢿⣿⣿"
-    echo "    ⣀⣶⣿⣿⣿⣾⣇   ⢀⣿⠃⠀⠀⠀⠀⢀⣀⡀⠀⠀⠀⣀⡀⠀⠀⠀⠀⠀⠹⣿"
-    echo "    ⢻⣿⣿⣿⣿⣿⣿⣷⣄ ⣼⡏⠀⠀⠀⣀⣀⣉⠉⠩⠭⠭⠭⠥⠤⢀⣀⣀⠀⠀⠀⢻⡇"
-    echo "    ⣸⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⣿⠷⠒⠋⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠑⠒⠼⣧"
-    echo "    ⢹⣿⣿⣿⣿⣿⣿⣿⣿⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠳⣦⣀"
-    echo "    ⢸⣿⣿⣿⣿⣿⣿⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣷⣦⣀"
-    echo "    ⠈⣿⣿⣿⣿⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣷⣄"
-    echo "     ⢹⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣷⣄"
-    echo "      ⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣿⣿⣿⣧⡀"
-    echo "      ⢠⣿⣿⣿⣿⣿⣶⣤⣄⣠⣤⣤⣶⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣶⣶⣶⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷"
-    echo "      ⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧"
-    echo "    ⣀ ⢸⡿⠿⣿⡿⠋⠉⠛⠻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠉⠀⠻⠿⠟⠉⢙⣿⣿⣿⣿⣿⣿⡇"
-    echo "    ⢿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⠀⠀⠈⠻⠿⢿⡿⣿⠳"
-    echo "    ⡞⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣇⡀"
-    echo " ⢀⣸⣀⡀⠀⠀⠀⠀⣠⣴⣾⣿⣷⣆⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⣰⣿⣿⣿⣿⣷⣦⠀⠀⠀⠀⢿⣿⠿⠃"
-    echo " ⠘⢿⡿⠃⠀⠀⠀⣸⣿⣿⣿⣿⣿⡿⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡀⢻⣿⣿⣿⣿⣿⣿⠂⠀⠀⠀⡸⠁"
-    echo "    ⠳⣄⠀⠀⠀⠹⣿⣿⣿⡿⠛⣠⠾⠿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠿⠿⠳⣄⠙⠛⠿⠿⠛⠉⠀⠀⣀⠜⠁"
-    echo "      ⠈⠑⠢⠤⠤⠬⠭⠥⠖⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠒⠢⠤⠤⠤⠒⠊⠁"
-    echo -e "${NC}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    [[ -f "$ENV_FILE" && -s "$ENV_FILE" ]] && CONF_STAT="${GREEN}ACTIVE${NC}" || CONF_STAT="${RED}OFFLINE${NC}"
-    echo -e "${WHITE}  SYSTEM:${NC} $LOCAL_IP   ${WHITE}CONFIG:${NC} $CONF_STAT"
-    get_grouped_storage
-    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    # (Your code for ASCII art and system bar)
 }
 
 # --- 8. MAIN LOOP ---
@@ -245,7 +115,7 @@ while true; do
     echo -e "\n  ${CYAN}CORE PROCESSING${NC}"
     echo -e "  ${WHITE}[04]${NC} Run Move (Finished)\n  ${WHITE}[05]${NC} Run Move (Temp)\n  ${WHITE}[06]${NC} Forced Run (Ignore History)\n  ${WHITE}[07]${NC} Simulation Mode (Dry Run)"
     echo -e "\n  ${CYAN}SYSTEM & MAINTENANCE${NC}"
-    echo -e "  ${WHITE}[08]${NC} View Logs\n  ${WHITE}[09]${NC} Scrub Junk Files\n  ${WHITE}[10]${NC} Wipe AMC History\n  ${WHITE}[11]${NC} Empty Finished/Temp\n  ${WHITE}[12]${NC} ${GOLD}SYSTEM UPGRADE & RE-VERIFY DEPS${NC}"
+    echo -e "  ${WHITE}[08]${NC} View Logs\n  ${WHITE}[09]${NC} Scrub Junk Files\n  ${WHITE}[10]${NC} Wipe AMC History\n  ${WHITE}[11]${NC} Empty Finished/Temp\n  ${WHITE}[12]${NC} ${GOLD}SYSTEM UPGRADE${NC}"
     echo -e "\n  ${CYAN}ALERTS & TESTING${NC}"
     echo -e "  ${WHITE}[13]${NC} Test Notifications\n  ${WHITE}[14]${NC} Run Test Cycle\n  ${WHITE}[15]${NC} Trigger Configuration Backup"
     echo -e "\n  ${CYAN}SYSTEM${NC}\n  ${WHITE}[00]${NC} TERMINATE SESSION\n"
@@ -253,7 +123,7 @@ while true; do
 
     case "$choice" in
         01|1) run_inline_setup ;;
-        02|2) echo -e "\n${WHITE}filebot -script fn:amc \"/downloads\" --output \"/media\" --action move --conflict override -non-strict --def \"ut_dir=%F\" \"ut_kind=multi\" \"ut_title=%N\" \"ut_label=%L\"${NC}"; read -p "Enter..." res ;;
+        02|2) echo -e "\n${WHITE}filebot -script fn:amc \"/downloads\" --output \"/media\" --action move --conflict override -non-strict --def \"ut_dir=%F\" \"ut_kind=multi\" \"ut_title=%N\" \"ut_label=%L\"" && read -p "Enter..." res ;;
         03|3) update_yaml_config; read -p "Enter..." res ;;
         04|4) run_processor "move" "override" "$FINISHED_DIR" "false"; read -p "Enter..." res ;;
         05|5) run_processor "move" "override" "$TEMP_DIR" "false"; read -p "Enter..." res ;;
