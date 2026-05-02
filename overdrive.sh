@@ -21,7 +21,7 @@ if [[ "$1" == "--install" ]]; then
     echo "      ⢠⣿⣿⣿⣿⣿⣶⣤⣄⣠⣤⣤⣶⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣶⣶⣶⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷"
     echo "      ⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧"
     echo "    ⣀ ⢸⡿⠿⣿⡿⠋⠉⠛⠻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠉⠀⠻⠿⠟⠉⢙⣿⣿⣿⣿⣿⣿⡇"
-    echo "    ⢿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⠀⠀⠈⠻⠿⢿⡿⣿⠳"
+    echo "    ⢿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⠀��⠈⠻⠿⢿⡿⣿⠳"
     echo "    ⡞⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣇⡀"
     echo " ⢀⣸⣀⡀⠀⠀⠀⠀⣠⣴⣾⣿⣷⣆⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⣰⣿⣿⣿⣿⣷⣦⠀⠀⠀⠀⢿⣿⠿⠃"
     echo " ⠘⢿⡿⠃⠀⠀⠀⣸⣿⣿⣿⣿⣿⡿⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡀⢻⣿⣿⣿⣿⣿⣿⠂⠀⠀⠀⡸⠁"
@@ -71,7 +71,7 @@ check_dependencies() {
 
 # --- 2. COLORS ---
 CYAN='\033[0;36m'; BLUE='\033[1;34m'; GOLD='\033[1;33m'; GREEN='\033[1;32m'
-RED='\033[1;31m'; GREY='\033[0;90m'; WHITE='\033[1;37m'; NC='\033[0m' 
+RED='\033[1;31m'; GREY='\033[0;90m'; WHITE='\033[1;37m'; NC='\033[0m'
 
 # --- 3. PATHS & CONFIG ---
 SCRIPT_PATH=$(readlink -f "$0")
@@ -80,15 +80,6 @@ LOCAL_IP=$(hostname -I | awk '{print $1}' | cut -d' ' -f1)
 ENV_FILE="/home/$CURRENT_USER/.media_bot.env"
 PGP_FILE="/home/$CURRENT_USER/.media_bot.pgp"
 STORAGE_CACHE="/tmp/.media_storage_cache"
-
-STORAGE_ROOT="/mnt/Media"
-FINISHED_DIR="$STORAGE_ROOT/Torrents/finished"
-TEMP_DIR="$STORAGE_ROOT/Torrents/temp"
-WATCHING_DIR="$STORAGE_ROOT/Torrents/watching"
-QB_CONTAINER="qbittorrent"
-
-# Ensure target directories exist
-mkdir -p "$FINISHED_DIR" "$TEMP_DIR" "$WATCHING_DIR"
 
 # --- 4. STORAGE LOGIC ---
 # ... (Rest of your script as you posted: get_grouped_storage, update_yaml_config, email_backup, run_processor, etc) ...
@@ -111,7 +102,10 @@ header() {
 while true; do
     header
     echo -e "  ${CYAN}SETUP & CONFIGURATION${NC}"
-    echo -e "  ${WHITE}[01]${NC} Update Environment & PGP\n  ${WHITE}[02]${NC} Show qBittorrent Setup String\n  ${WHITE}[03]${NC} ${GOLD}AUTO-INJECT AMC STRING INTO YAML${NC}"
+    echo -e "  ${WHITE}[01]${NC} Update Environment & PGP"
+    echo -e "  ${WHITE}[02]${NC} Show qBittorrent Setup String"
+    echo -e "  ${WHITE}[03]${NC} ${GOLD}AUTO-INJECT AMC STRING INTO YAML${NC}"
+    echo -e "  ${WHITE}[16]${NC} Show qBittorrent Folders & AutoRun string"
     echo -e "\n  ${CYAN}CORE PROCESSING${NC}"
     echo -e "  ${WHITE}[04]${NC} Run Move (Finished)\n  ${WHITE}[05]${NC} Run Move (Temp)\n  ${WHITE}[06]${NC} Forced Run (Ignore History)\n  ${WHITE}[07]${NC} Simulation Mode (Dry Run)"
     echo -e "\n  ${CYAN}SYSTEM & MAINTENANCE${NC}"
@@ -148,7 +142,64 @@ while true; do
         13)   email_backup; echo "Alerts triggered."; read -p "Enter..." res ;;
         14)   wget -P "$WATCHING_DIR" "https://webtorrent.io/torrents/big-buck-bunny.torrent"; read -p "Test started..." res ;;
         15)   email_backup; read -p "Backup sent." res ;;
+        16)   show_qbittorrent_mappings; read -p "Press Enter..." res ;;
         00|0) exit 0 ;;
         *) [[ -n "$choice" ]] && echo -e "${RED}Invalid selection.${NC}" && sleep 0.5 ;;
     esac
 done
+
+show_qbittorrent_mappings() {
+    containers=$(sudo docker ps -a --filter name=qbittorrent --format '{{.Names}}')
+    if [ -z "$containers" ]; then
+        echo "No containers named qbittorrent (running or stopped)"
+        return
+    fi
+
+    for container in $containers; do
+        echo
+        echo "=== Container: $container ==="
+        unset MAP_finished MAP_temp MAP_watching
+
+        while read -r mapping; do
+            host_path="${mapping% =>*}"
+            cont_path="${mapping#*=> }"
+            for sub in finished temp watching; do
+                host_target="${host_path}/Torrents/$sub"
+                if [ -d "$host_target" ]; then
+                    cont_target="${cont_path}/Torrents/$sub"
+                    eval "MAP_$sub='$cont_target'"
+                    echo "Folder '$sub' --> Host: $host_target  |  Container: $cont_target"
+                fi
+            done
+        done < <(sudo docker inspect "$container" --format '{{range .Mounts}}{{.Source}} => {{.Destination}}{{"\n"}}{{end}}')
+
+        unset OVERDRIVE_PATH
+        while read -r mapping; do
+            host_path="${mapping% =>*}"
+            cont_path="${mapping#*=> }"
+            if [ -f "${host_path}/overdrive.sh" ]; then
+                OVERDRIVE_PATH="${cont_path}/overdrive.sh"
+                echo "Found overdrive.sh --> Host: $host_path/overdrive.sh | Container: $OVERDRIVE_PATH"
+                break
+            fi
+        done < <(sudo docker inspect "$container" --format '{{range .Mounts}}{{.Source}} => {{.Destination}}{{"\n"}}{{end}}')
+
+        if [ -z "$OVERDRIVE_PATH" ]; then
+            echo "WARNING: overdrive.sh not found in any mapped volume, using fallback"
+            OVERDRIVE_PATH="/overdrive.sh"
+        fi
+
+        echo
+        echo "Suggested qBittorrent folders (Container paths):"
+        echo "  Finished: ${MAP_finished:-/downloads}"
+        echo "  Temp:     ${MAP_temp:-/temp}"
+        echo "  Watching: ${MAP_watching:-/watching}"
+        echo
+        echo "AutoRun 'program=' string:"
+        echo "  ${OVERDRIVE_PATH} \"%F\""
+        echo
+        echo "-----"
+    done
+
+    echo "No changes made to any files. Safe BETA output only."
+}
