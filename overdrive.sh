@@ -196,7 +196,7 @@ while true; do
               echo -e "${GREEN}✓ Maintenance Complete.${NC}"
               read -p "Press Enter to return to menu..." res ;;
         13)   email_backup; echo "Alerts triggered."; read -p "Enter..." res ;;
-        14)   wget -P "$WATCHING_DIR" "https://webtorrent.io/torrents/big-buck-bunny.torrent"; read -p "Test started..." res ;;
+        14)   sudo wget -P "$WATCHING_DIR" "https://archive.org/download/BigBuckBunny_328/BigBuckBunny_328_archive.torrent"; read -p "Test started..." res ;;
         15)   email_backup; read -p "Backup sent." res ;;
         16)   show_qbittorrent_mappings; read -p "Press Enter..." res ;;
         00|0) exit 0 ;;
