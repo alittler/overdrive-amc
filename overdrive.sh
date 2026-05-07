@@ -1,205 +1,225 @@
 #!/bin/bash
 
-# --- INSTALLATION BLOCK WITH ASCII ART ---
-if [[ "$1" == "--install" ]]; then
-    CYAN='\033[0;36m'; BLUE='\033[1;34m'; GOLD='\033[1;33m'; GREEN='\033[1;32m'
-    RED='\033[1;31m'; GREY='\033[0;90m'; WHITE='\033[1;37m'; NC='\033[0m'
+# --- RELIABLE PATH CAPTURE ---
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
 
-    # ASCII ART HEADER
-    echo -e "${BLUE}"
-    echo "                  ⣶⣿⣶⣦⣄⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣤⣶⣾⣿⣿⣷"
-    echo "                  ⣿⣿⣿⣿⣿⠿⠿⠿⣿⣿⣿⣿⠿⠿⠿⢿⣿⣿⣿⣿⣿"
-    echo "       ⢀⡀⣄      ⣿⣿⠟⠉⠀⢀⣀⠀⠀⠈⠉⠀⠀⣀⣀⠀⠀⠙⢿⣿⣿"
-    echo "    ⣀⣶⣿⣿⣿⣾⣇   ⢀⣿⠃⠀⠀⠀⠀⢀⣀⡀⠀⠀⠀⣀⡀⠀⠀⠀⠀⠀⠹⣿"
-    echo "    ⢻⣿⣿⣿⣿⣿⣿⣷⣄ ⣼⡏⠀⠀⠀⣀⣀⣉⠉⠩⠭⠭⠭⠥⠤⢀⣀⣀⠀⠀⠀⢻⡇"
-    echo "    ⣸⣿⣿⣿⣿⣿⣿⣿⣿⣷⣄⣿⠷⠒⠋⠉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠑⠒⠼⣧"
-    echo "    ⢹⣿⣿⣿⣿⣿⣿⣿⣿⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠳⣦⣀"
-    echo "    ⢸⣿⣿⣿⣿⣿⡿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢿⣷⣦⣀"
-    echo "    ⠈⣿⣿⣿⣿⣿⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣷⣄"
-    echo "     ⢹⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣷⣄"
-    echo "      ⣿⣿⣿⣿⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣿⣿⣿⣧⡀"
-    echo "      ⢠⣿⣿⣿⣿⣿⣶⣤⣄⣠⣤⣤⣶⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣶⣶⣶⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷"
-    echo "      ⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧"
-    echo "    ⣀ ⢸⡿⠿⣿⡿⠋⠉⠛⠻⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠟⠉⠀⠻⠿⠟⠉⢙⣿⣿⣿⣿⣿⣿⡇"
-    echo "    ⢿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠁⠀⠀⠀⠀⠀⠀��⠈⠻⠿⢿⡿⣿⠳"
-    echo "    ⡞⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣇⡀"
-    echo " ⢀⣸⣀⡀⠀⠀⠀⠀⣠⣴⣾⣿⣷⣆⠀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⣰⣿⣿⣿⣿⣷⣦⠀⠀⠀⠀⢿⣿⠿⠃"
-    echo " ⠘⢿⡿⠃⠀⠀⠀⣸⣿⣿⣿⣿⣿⡿⢀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡀⢻⣿⣿⣿⣿⣿⣿⠂⠀⠀⠀⡸⠁"
-    echo "    ⠳⣄⠀⠀⠀⠹⣿⣿⣿⡿⠛⣠⠾⠿⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠿⠿⠳⣄⠙⠛⠿⠿⠛⠉⠀⠀⣀⠜⠁"
-    echo "      ⠈⠑⠢⠤⠤⠬⠭⠥⠖⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠒⠢⠤⠤⠤⠒⠊⠁"
-    echo -e "${NC}${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+# --- DIALOG COLOUR SCHEME ---
+export DIALOGRC_FILE="$HOME/.dialogrc_media"
+cat <<EOF > "$DIALOGRC_FILE"
+use_shadow = ON
+use_colors = ON
+screen_color = (CYAN,BLUE,ON)
+dialog_color = (BLACK,WHITE,OFF)
+title_color = (BLUE,WHITE,ON)
+border_color = (WHITE,WHITE,ON)
+button_active_color = (WHITE,BLUE,ON)
+button_inactive_color = (BLACK,WHITE,OFF)
+form_item_readonly_color = (CYAN,WHITE,ON)
+EOF
+export DIALOGRC="$DIALOGRC_FILE"
 
-    # Install logic
-    echo
-    read -rp "Enter the full path where you want to install overdrive.sh (e.g. /usr/local/bin/overdrive.sh): " TARGET
-    if [[ -z "$TARGET" ]]; then
-        echo "Install path required."
-        exit 1
-    fi
-    echo "Copying overdrive.sh to $TARGET ..."
-    curl -fsSL "https://raw.githubusercontent.com/alittler/overdrive-amc/main/overdrive.sh" -o "$TARGET"
-    chmod +x "$TARGET"
-    echo "overdrive.sh successfully installed to $TARGET"
+# --- CONFIG & CACHING ---
+ENV_CACHE="$HOME/.media_bot.cache"
+[[ -f "$ENV_CACHE" ]] && source "$ENV_CACHE"
+
+# Defaults
+: "${DIR_INPUT:=/mnt/Media/Torrents/finished}"
+: "${DIR_TV:=/mnt/TV_Shows/TV Shows}"
+: "${DIR_MOVIES:=/mnt/Media/Movies}"
+: "${FMT_TV:={n}/{'Season '+s}/{n} - {s00e00}}"
+: "${FMT_MOVIE:={n} ({y})}"
+
+FB_LOG="$HOME/amc.log"
+BBB_URL="https://webtorrent.io/torrents/big-buck-bunny.torrent"
+LAN_IP=$(hostname -I | awk '{print $1}')
+HOST_IP=${LAN_IP:-"127.0.0.1"}
+QBIT_URL="http://${HOST_IP}:8181"
+PLEX_URL="http://${HOST_IP}:32400"
+
+# --- THE AUTOMATION HOOK ---
+if [[ "$1" == "--auto-filebot" ]]; then
+    filebot -script fn:amc --output "/" --action move -non-strict \
+        --def ut_dir="$DIR_INPUT" ut_kind="multi" \
+        --def "seriesFormat=$DIR_TV/$FMT_TV" \
+        --def "movieFormat=$DIR_MOVIES/$FMT_MOVIE" \
+        plex="localhost:$CACHE_PLEX" \
+        pushover="$CACHE_PUSH_USER:$CACHE_PUSH_TOKEN" \
+        gmail="$CACHE_GMAIL_USER:$CACHE_GMAIL_PASS" 2>&1 | tee -a "$FB_LOG"
     exit 0
 fi
 
-# --- 1. DEPENDENCY & DIRECTORY INITIALIZATION ---
-DEP_LOG="/home/$(whoami)/.media_bot_deps"
-REQUIRED_PKGS=("swaks" "curl" "ca-certificates" "wget")
+# --- HELPERS ---
+msg() { dialog --title " AndrewNAS " --msgbox "$1" 20 85; }
+get_free_space() { df -h "$1" | awk 'NR==2 {print $4}' 2>/dev/null || echo "N/A"; }
 
-check_dependencies() {
-    MISSING_PKGS=()
-    for pkg in "${REQUIRED_PKGS[@]}"; do
-        if ! command -v "$pkg" &> /dev/null; then
-            MISSING_PKGS+=("$pkg")
-        fi
-    done
-
-    if [ ${#MISSING_PKGS[@]} -gt 0 ]; then
-        echo -e "\033[1;33m[!] Installing missing tools: ${MISSING_PKGS[*]}\033[0m"
-        sudo apt update && sudo apt install -y "${MISSING_PKGS[@]}"
-    fi
-    
-    if [[ ! -f "$DEP_LOG" ]]; then
-        touch "$DEP_LOG"
-        echo "Verified: $(date)" > "$DEP_LOG"
-    fi
+qbit_login() {
+    local login_out=$(curl -s -i -X POST "$QBIT_URL/api/v2/auth/login" \
+         -d "username=$CACHE_QBIT_USER&password=$CACHE_QBIT_PASS")
+    echo "$login_out" | grep -oP 'SID=\K[^;]+' > /tmp/qbit_sid
 }
 
-# Run check if log is missing
-[[ ! -f "$DEP_LOG" ]] && check_dependencies
-
-# --- 2. COLORS ---
-CYAN='\033[0;36m'; BLUE='\033[1;34m'; GOLD='\033[1;33m'; GREEN='\033[1;32m'
-RED='\033[1;31m'; GREY='\033[0;90m'; WHITE='\033[1;37m'; NC='\033[0m'
-
-# --- 3. PATHS & CONFIG ---
-SCRIPT_PATH=$(readlink -f "$0")
-CURRENT_USER=$(whoami)
-LOCAL_IP=$(hostname -I | awk '{print $1}' | cut -d' ' -f1)
-ENV_FILE="/home/$CURRENT_USER/.media_bot.env"
-PGP_FILE="/home/$CURRENT_USER/.media_bot.pgp"
-STORAGE_CACHE="/tmp/.media_storage_cache"
-
-# --- 4. STORAGE LOGIC ---
-# ... (Rest of your script as you posted: get_grouped_storage, update_yaml_config, email_backup, run_processor, etc) ...
-# --- 5. AUTOMATED YAML FIND & INJECT ---
-update_yaml_config() {
-    # (Your code)
-}
-# --- 6. CORE FUNCTIONS ---
-email_backup() {
-    # (Your code)
-}
-# ... (the rest of your code, unchanged) ...
-
-# --- 7. UI HEADER ---
-header() {
-    # (Your code for ASCII art and system bar)
-}
-
-# --- 8. MAIN LOOP ---
 while true; do
-    header
-    echo -e "  ${CYAN}SETUP & CONFIGURATION${NC}"
-    echo -e "  ${WHITE}[01]${NC} Update Environment & PGP"
-    echo -e "  ${WHITE}[02]${NC} Show qBittorrent Setup String"
-    echo -e "  ${WHITE}[03]${NC} ${GOLD}AUTO-INJECT AMC STRING INTO YAML${NC}"
-    echo -e "  ${WHITE}[16]${NC} Show qBittorrent Folders & AutoRun string"
-    echo -e "\n  ${CYAN}CORE PROCESSING${NC}"
-    echo -e "  ${WHITE}[04]${NC} Run Move (Finished)\n  ${WHITE}[05]${NC} Run Move (Temp)\n  ${WHITE}[06]${NC} Forced Run (Ignore History)\n  ${WHITE}[07]${NC} Simulation Mode (Dry Run)"
-    echo -e "\n  ${CYAN}SYSTEM & MAINTENANCE${NC}"
-    echo -e "  ${WHITE}[08]${NC} View Logs\n  ${WHITE}[09]${NC} Scrub Junk Files\n  ${WHITE}[10]${NC} Wipe AMC History\n  ${WHITE}[11]${NC} Empty Finished/Temp\n  ${WHITE}[12]${NC} ${GOLD}SYSTEM UPGRADE${NC}"
-    echo -e "\n  ${CYAN}ALERTS & TESTING${NC}"
-    echo -e "  ${WHITE}[13]${NC} Test Notifications\n  ${WHITE}[14]${NC} Run Test Cycle\n  ${WHITE}[15]${NC} Trigger Configuration Backup"
-    echo -e "\n  ${CYAN}SYSTEM${NC}\n  ${WHITE}[00]${NC} TERMINATE SESSION\n"
-    echo -ne "  ${WHITE}SELECT OPTION:${NC} "; read -r choice
+    MEDIA_SPACE=$(get_free_space "/mnt/Media")
+    exec 3>&1
+    selection=$(dialog --backtitle "AndrewNAS | Media Free: $MEDIA_SPACE" \
+        --title " MAIN MENU " --clear --cancel-label "Exit" \
+        --menu "Select an operation:" 24 85 16 \
+        "---" "[ SETUP & CONFIG ]" \
+        "S1" "Install Dependencies" \
+        "S2" "Set API Credentials" \
+        "S3" "Configure Folders & Naming" \
+        "S4" "IMPORT CONFIG FROM PASTE" \
+        "---" "[ QBITTORRENT ]" \
+        "Q1" "Optimize qBit (RSS & Script Hook)" \
+        "---" "[ TEST SUITE ]" \
+        "T1" "STEP 1: RUN BBB TEST DOWNLOAD" \
+        "T2" "STEP 2: DELETE BBB TEST FILES (Manual)" \
+        "---" "[ FILEBOT SECTION ]" \
+        "F1" "Live Download Monitor" \
+        "F2" "Manual Filebot Run" \
+        "F4" "VIEW GENERATED COMMAND" \
+        "---" "[ MAINTENANCE ]" \
+        "M1" "Clear Logs and Temp Files" \
+        "M2" "BACKUP CONFIG TO EMAIL" \
+        "RE" "RELOAD SCRIPT" \
+        "00" "EXIT" 2>&1 1>&3)
+    exit_status=$?
+    exec 3>&-
 
-    case "$choice" in
-        01|1) run_inline_setup ;;
-        02|2) echo -e "\n${WHITE}filebot -script fn:amc \"/downloads\" --output \"/media\" --action move --conflict override -non-strict --def \"ut_dir=%F\" \"ut_kind=multi\" \"ut_title=%N\" \"ut_label=%L\"" && read -p "Enter..." res ;;
-        03|3) update_yaml_config; read -p "Enter..." res ;;
-        04|4) run_processor "move" "override" "$FINISHED_DIR" "false"; read -p "Enter..." res ;;
-        05|5) run_processor "move" "override" "$TEMP_DIR" "false"; read -p "Enter..." res ;;
-        06|6) run_processor "move" "override" "$FINISHED_DIR" "true"; read -p "Enter..." res ;;
-        07|7) run_processor "test" "skip"; read -p "Enter..." res ;;
-        08|8) tail -n 50 "$FINISHED_DIR/filebot_amc.log"; read -p "Enter..." res ;;
-        09|9) find "$FINISHED_DIR" -type f -size -20M -delete; echo "Junk scrubbed."; sleep 1 ;;
-        10)   rm "$FINISHED_DIR/amc_exclude.txt" 2>/dev/null; echo "History wiped."; sleep 1 ;;
-        11)   sudo rm -rf "${FINISHED_DIR:?}"/*; sudo rm -rf "${TEMP_DIR:?}"/*; rm -f "$STORAGE_CACHE"; echo "Folders cleared."; read -p "Enter..." res ;;
-        12)   echo -e "${GOLD}[!] Starting Full System Maintenance...${NC}"
-              echo -e "${CYAN}[1/4] Updating Package Lists...${NC}"
-              sudo apt update
-              echo -e "${CYAN}[2/4] Checking for Upgradeable Packages...${NC}"
-              apt list --upgradeable
-              echo -e "${CYAN}[3/4] Performing System Upgrade...${NC}"
-              sudo apt upgrade -y
-              echo -e "${CYAN}[4/4] Forcing Re-installation of Dependencies...${NC}"
-              sudo apt install -y "${REQUIRED_PKGS[@]}"
-              check_dependencies
-              echo -e "${GREEN}✓ Maintenance Complete.${NC}"
-              read -p "Press Enter to return to menu..." res ;;
-        13)   email_backup; echo "Alerts triggered."; read -p "Enter..." res ;;
-        14)   wget -P "$WATCHING_DIR" "https://webtorrent.io/torrents/big-buck-bunny.torrent"; read -p "Test started..." res ;;
-        15)   email_backup; read -p "Backup sent." res ;;
-        16)   show_qbittorrent_mappings; read -p "Press Enter..." res ;;
-        00|0) exit 0 ;;
-        *) [[ -n "$choice" ]] && echo -e "${RED}Invalid selection.${NC}" && sleep 0.5 ;;
+    [[ $exit_status != 0 || "$selection" == "00" ]] && clear && exit 0
+
+    case "$selection" in
+        "S1")
+            clear
+            echo "Installing essential tools..."
+            sudo apt update && sudo apt install -y curl jq swaks dialog filebot
+            msg "Dependencies installed." ;;
+
+        "S2")
+            exec 3>&1
+            mapfile -t input < <(dialog --title " API Setup " --form "Fill all credentials:" 20 75 0 \
+                "Plex Token:" 1 1 "$CACHE_PLEX" 1 22 45 0 \
+                "Push User Key:" 2 1 "$CACHE_PUSH_USER" 2 22 45 0 \
+                "Push App Token:" 3 1 "$CACHE_PUSH_TOKEN" 3 22 45 0 \
+                "Gmail User:" 4 1 "$CACHE_GMAIL_USER" 4 22 45 0 \
+                "Gmail Pass:" 5 1 "$CACHE_GMAIL_PASS" 5 22 45 0 \
+                "qBit User:" 6 1 "$CACHE_QBIT_USER" 6 22 45 0 \
+                "qBit Pass:" 7 1 "$CACHE_QBIT_PASS" 7 22 45 0 \
+                "Sudo Pass:" 8 1 "$CACHE_SUDO" 8 22 45 0 2>&1 1>&3)
+            exec 3>&-
+            if [[ -n "${input[0]}" ]]; then
+                {
+                    printf "export CACHE_PLEX=%q\n" "${input[0]}"
+                    printf "export CACHE_PUSH_USER=%q\n" "${input[1]}"
+                    printf "export CACHE_PUSH_TOKEN=%q\n" "${input[2]}"
+                    printf "export CACHE_GMAIL_USER=%q\n" "${input[3]}"
+                    printf "export CACHE_GMAIL_PASS=%q\n" "${input[4]}"
+                    printf "export CACHE_QBIT_USER=%q\n" "${input[5]}"
+                    printf "export CACHE_QBIT_PASS=%q\n" "${input[6]}"
+                    printf "export CACHE_SUDO=%q\n" "${input[7]}"
+                    [[ -n "$DIR_INPUT" ]] && printf "export DIR_INPUT=%q\n" "$DIR_INPUT"
+                    [[ -n "$DIR_TV" ]] && printf "export DIR_TV=%q\n" "$DIR_TV"
+                    [[ -n "$DIR_MOVIES" ]] && printf "export DIR_MOVIES=%q\n" "$DIR_MOVIES"
+                    [[ -n "$FMT_TV" ]] && printf "export FMT_TV=%q\n" "$FMT_TV"
+                    [[ -n "$FMT_MOVIE" ]] && printf "export FMT_MOVIE=%q\n" "$FMT_MOVIE"
+                } > "$ENV_CACHE"
+                source "$ENV_CACHE"; msg "Credentials Saved."
+            fi ;;
+
+        "S3")
+            exec 3>&1
+            mapfile -t paths < <(dialog --title " Folder Config " --form "Define Paths:" 20 75 0 \
+                "Input/Torrents:" 1 1 "$DIR_INPUT" 1 20 50 0 \
+                "TV Library:" 2 1 "$DIR_TV" 2 20 50 0 \
+                "Movie Library:" 3 1 "$DIR_MOVIES" 3 20 50 0 \
+                "TV Format:" 4 1 "$FMT_TV" 4 20 50 0 \
+                "Movie Format:" 5 1 "$FMT_MOVIE" 5 20 50 0 2>&1 1>&3)
+            exec 3>&-
+            if [[ -n "${paths[0]}" ]]; then
+                {
+                    [[ -n "$CACHE_PLEX" ]] && printf "export CACHE_PLEX=%q\n" "$CACHE_PLEX"
+                    [[ -n "$CACHE_PUSH_USER" ]] && printf "export CACHE_PUSH_USER=%q\n" "$CACHE_PUSH_USER"
+                    [[ -n "$CACHE_PUSH_TOKEN" ]] && printf "export CACHE_PUSH_TOKEN=%q\n" "$CACHE_PUSH_TOKEN"
+                    [[ -n "$CACHE_GMAIL_USER" ]] && printf "export CACHE_GMAIL_USER=%q\n" "$CACHE_GMAIL_USER"
+                    [[ -n "$CACHE_GMAIL_PASS" ]] && printf "export CACHE_GMAIL_PASS=%q\n" "$CACHE_GMAIL_PASS"
+                    [[ -n "$CACHE_QBIT_USER" ]] && printf "export CACHE_QBIT_USER=%q\n" "$CACHE_QBIT_USER"
+                    [[ -n "$CACHE_QBIT_PASS" ]] && printf "export CACHE_QBIT_PASS=%q\n" "$CACHE_QBIT_PASS"
+                    [[ -n "$CACHE_SUDO" ]] && printf "export CACHE_SUDO=%q\n" "$CACHE_SUDO"
+                    printf "export DIR_INPUT=%q\n" "${paths[0]}"
+                    printf "export DIR_TV=%q\n" "${paths[1]}"
+                    printf "export DIR_MOVIES=%q\n" "${paths[2]}"
+                    printf "export FMT_TV=%q\n" "${paths[3]}"
+                    printf "export FMT_MOVIE=%q\n" "${paths[4]}"
+                } > "$ENV_CACHE"
+                source "$ENV_CACHE"; msg "Paths Updated."
+            fi ;;
+
+        "S4")
+            RAW_INPUT="/tmp/media_import.txt"
+            dialog --title " Paste Content Below " --editbox "$RAW_INPUT" 20 85 2> "$RAW_INPUT"
+            if [[ -s "$RAW_INPUT" ]]; then
+                grep -E "^export (CACHE_|DIR_|FMT_)" "$RAW_INPUT" | sed "s/^export //g" | sed "s/'//g" > "/tmp/filtered_vars.txt"
+                if [[ -s "/tmp/filtered_vars.txt" ]]; then
+                    while IFS='=' read -r key value; do
+                        [[ -n "$key" ]] && printf "export %s=%q\n" "$key" "$value"
+                    done < "/tmp/filtered_vars.txt" > "$ENV_CACHE"
+                    rm "$RAW_INPUT" "/tmp/filtered_vars.txt"
+                    source "$ENV_CACHE"
+                    msg "IMPORT SUCCESSFUL"
+                fi
+            fi ;;
+
+        "T1")
+            qbit_login; sid=$(cat /tmp/qbit_sid)
+            curl -s -X POST "$QBIT_URL/api/v2/torrents/add" -H "Cookie: SID=$sid" -F "urls=$BBB_URL"
+            msg "BBB TEST STARTED. Use Plex/File Manager to verify. Use T2 to delete when done." ;;
+
+        "T2")
+            qbit_login; sid=$(cat /tmp/qbit_sid)
+            BBB_HASH=$(curl -s -X GET "$QBIT_URL/api/v2/torrents/info" -H "Cookie: SID=$sid" | jq -r '.[] | select(.name | contains("Big Buck Bunny")) | .hash')
+            if [[ -n "$BBB_HASH" ]]; then
+                curl -s -X POST "$QBIT_URL/api/v2/torrents/delete" -H "Cookie: SID=$sid" -d "hashes=$BBB_HASH&deleteFiles=true"
+            fi
+            rm -rf "$DIR_MOVIES/Big Buck Bunny (2008)"
+            curl -s -X GET "$PLEX_URL/library/sections/all/refresh?X-Plex-Token=$CACHE_PLEX"
+            msg "MANUAL PURGE COMPLETE." ;;
+
+        "F1") clear; watch -n 5 "ls -R \"$DIR_INPUT\"" ;;
+
+        "F2")
+            clear; echo "Running manual FileBot process..."
+            bash "$SCRIPT_PATH" --auto-filebot
+            read -p "Done. Press Enter." ;;
+
+        "F4")
+            PREVIEW="filebot -script fn:amc --output \"/\" --action move -non-strict --def ut_dir=\"$DIR_INPUT\" --def \"seriesFormat=$DIR_TV/$FMT_TV\" --def \"movieFormat=$DIR_MOVIES/$FMT_MOVIE\""
+            dialog --title " Preview " --msgbox "$PREVIEW" 18 85 ;;
+
+        "M1")
+            rm -f "$FB_LOG" /tmp/qbit_sid
+            msg "Logs and Temp Files Cleared." ;;
+
+        "Q1")
+            qbit_login; sid=$(cat /tmp/qbit_sid)
+            trackers=$(curl -s https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt | grep -v '^$')
+            json=$(jq -n --arg tr "$trackers" --arg sp "$SCRIPT_PATH" \
+                '{"rss_enabled":true,"rss_auto_downloading_enabled":true,"add_trackers":$tr,"add_trackers_enabled":true,"incomplete_files_ext":true,"autorun_enabled":true,"autorun_program":("bash "+$sp+" --auto-filebot")}')
+            curl -s -X POST "$QBIT_URL/api/v2/app/setPreferences" -H "Cookie: SID=$sid" -d "json=$json"
+            msg "QBITTORRENT OPTIMIZATION COMPLETE" ;;
+
+        "M2")
+            if [[ -z "$CACHE_GMAIL_USER" || -z "$CACHE_GMAIL_PASS" ]]; then
+                msg "Error: Set Gmail credentials in S2."
+            else
+                swaks --to "$CACHE_GMAIL_USER" --from "$CACHE_GMAIL_USER" \
+                    --server smtp.gmail.com:587 --auth LOGIN \
+                    --auth-user "$CACHE_GMAIL_USER" --auth-password "$CACHE_GMAIL_PASS" -tls \
+                    --header "Subject: AndrewNAS Config Backup" \
+                    --body "$(cat "$ENV_CACHE")"
+                msg "Backup sent to $CACHE_GMAIL_USER"
+            fi ;;
+
+        "RE") exec bash "$SCRIPT_PATH" ;;
+        "00") clear && exit 0 ;;
     esac
 done
-
-show_qbittorrent_mappings() {
-    containers=$(sudo docker ps -a --filter name=qbittorrent --format '{{.Names}}')
-    if [ -z "$containers" ]; then
-        echo "No containers named qbittorrent (running or stopped)"
-        return
-    fi
-
-    for container in $containers; do
-        echo
-        echo "=== Container: $container ==="
-        unset MAP_finished MAP_temp MAP_watching
-
-        while read -r mapping; do
-            host_path="${mapping% =>*}"
-            cont_path="${mapping#*=> }"
-            for sub in finished temp watching; do
-                host_target="${host_path}/Torrents/$sub"
-                if [ -d "$host_target" ]; then
-                    cont_target="${cont_path}/Torrents/$sub"
-                    eval "MAP_$sub='$cont_target'"
-                    echo "Folder '$sub' --> Host: $host_target  |  Container: $cont_target"
-                fi
-            done
-        done < <(sudo docker inspect "$container" --format '{{range .Mounts}}{{.Source}} => {{.Destination}}{{"\n"}}{{end}}')
-
-        unset OVERDRIVE_PATH
-        while read -r mapping; do
-            host_path="${mapping% =>*}"
-            cont_path="${mapping#*=> }"
-            if [ -f "${host_path}/overdrive.sh" ]; then
-                OVERDRIVE_PATH="${cont_path}/overdrive.sh"
-                echo "Found overdrive.sh --> Host: $host_path/overdrive.sh | Container: $OVERDRIVE_PATH"
-                break
-            fi
-        done < <(sudo docker inspect "$container" --format '{{range .Mounts}}{{.Source}} => {{.Destination}}{{"\n"}}{{end}}')
-
-        if [ -z "$OVERDRIVE_PATH" ]; then
-            echo "WARNING: overdrive.sh not found in any mapped volume, using fallback"
-            OVERDRIVE_PATH="/overdrive.sh"
-        fi
-
-        echo
-        echo "Suggested qBittorrent folders (Container paths):"
-        echo "  Finished: ${MAP_finished:-/downloads}"
-        echo "  Temp:     ${MAP_temp:-/temp}"
-        echo "  Watching: ${MAP_watching:-/watching}"
-        echo
-        echo "AutoRun 'program=' string:"
-        echo "  ${OVERDRIVE_PATH} \"%F\""
-        echo
-        echo "-----"
-    done
-
-    echo "No changes made to any files. Safe BETA output only."
-}
